@@ -1,0 +1,167 @@
+# claude-notifs
+
+macOS menu bar status widget for Claude Code sessions.
+
+Shows a color-coded indicator in your menu bar reflecting the aggregate state of all running Claude Code sessions:
+
+| Emoji | Status | Meaning |
+|-------|--------|---------|
+| ⚪ | Idle | No active sessions / session idle |
+| 🔵 | Working | Claude is generating a response |
+| ✅ | Done | Claude finished responding |
+| 🟡 | Attention | Permission prompt or notification waiting |
+
+Clicking the menu bar icon shows a dropdown with per-session details.
+
+## How it works
+
+Two components:
+
+1. **Hook** (`claude_notifs.hook`) — Called by Claude Code on lifecycle events (`SessionStart`, `UserPromptSubmit`, `Stop`, `Notification`, `PermissionRequest`). Writes session state to `~/.claude/claude-notifs-status.json`.
+
+2. **Menu bar app** (`claude_notifs.menubar`) — A [rumps](https://github.com/jaredks/rumps) app that polls the status file every 2 seconds and updates the menu bar icon.
+
+## Setup
+
+### Install dependencies
+
+```bash
+cd ~/Repositories/claude-notifs
+uv venv env3.13 --python 3.13
+uv pip install -e . --python env3.13/bin/python
+```
+
+### Configure the Claude Code hook
+
+Add the hook to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Replace `/Users/YOU/` with your home directory.
+
+### Run the menu bar app
+
+#### Option A: Manual (foreground)
+
+```bash
+env3.13/bin/python -m claude_notifs.menubar
+```
+
+#### Option B: LaunchAgent (recommended)
+
+A LaunchAgent runs the app automatically at login with no terminal window required.
+
+Create `~/Library/LaunchAgents/com.awlego.claude-notifs.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.awlego.claude-notifs</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/YOU/Repositories/claude-notifs/env3.13/bin/python</string>
+        <string>-m</string>
+        <string>claude_notifs.menubar</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/YOU/Repositories/claude-notifs</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/claude-notifs.stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/claude-notifs.stderr.log</string>
+</dict>
+</plist>
+```
+
+Replace `/Users/YOU/` with your home directory.
+
+Load it:
+
+```bash
+launchctl load ~/Library/LaunchAgents/com.awlego.claude-notifs.plist
+```
+
+Stop it:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.awlego.claude-notifs.plist
+```
+
+Check status:
+
+```bash
+launchctl list | grep claude-notifs
+```
+
+Logs are at `/tmp/claude-notifs.stdout.log` and `/tmp/claude-notifs.stderr.log`.
