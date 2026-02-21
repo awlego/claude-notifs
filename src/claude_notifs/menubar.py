@@ -3,6 +3,8 @@
 Usage: python -m claude_notifs.menubar
 """
 
+import subprocess
+
 import rumps
 
 from .constants import EMOJI_MAP, POLL_INTERVAL, Status
@@ -49,7 +51,9 @@ class ClaudeStatusApp(rumps.App):
                     # Truncate for menu display
                     short_msg = msg[:80] + "..." if len(msg) > 80 else msg
                     label += f" - {short_msg}"
-                menu_items.append(rumps.MenuItem(label))
+                pid = s.get("pid")
+                callback = self._make_focus_callback(pid) if pid else None
+                menu_items.append(rumps.MenuItem(label, callback=callback))
         else:
             menu_items.append(rumps.MenuItem("No active sessions"))
 
@@ -57,6 +61,47 @@ class ClaudeStatusApp(rumps.App):
         self.menu.clear()
         for item in menu_items:
             self.menu.add(item)
+
+    def _make_focus_callback(self, pid):
+        """Create a callback that focuses the iTerm2 tab for the given PID."""
+        def callback(_sender):
+            self._focus_iterm_tab(pid)
+        return callback
+
+    def _focus_iterm_tab(self, pid):
+        """Focus the iTerm2 tab containing the given PID."""
+        try:
+            result = subprocess.run(
+                ["ps", "-o", "tty=", "-p", str(pid)],
+                capture_output=True, text=True, timeout=5,
+            )
+            tty = result.stdout.strip()
+            if not tty or tty == "??":
+                return
+
+            tty_path = f"/dev/{tty}"
+            script = (
+                'tell application "iTerm2"\n'
+                "    repeat with w in windows\n"
+                "        repeat with t in tabs of w\n"
+                "            repeat with s in sessions of t\n"
+                f'                if tty of s is "{tty_path}" then\n'
+                "                    select t\n"
+                "                    tell w to select\n"
+                "                    activate\n"
+                "                    return\n"
+                "                end if\n"
+                "            end repeat\n"
+                "        end repeat\n"
+                "    end repeat\n"
+                "end tell\n"
+            )
+            subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True, timeout=5,
+            )
+        except Exception:
+            pass
 
 
 def main():
