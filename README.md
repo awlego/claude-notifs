@@ -26,7 +26,7 @@ Two components:
 ### Install dependencies
 
 ```bash
-cd ~/Repositories/claude-notifs
+cd /path/to/claude-notifs
 uv venv env3.13 --python 3.13
 uv pip install -e . --python env3.13/bin/python
 ```
@@ -44,7 +44,7 @@ Add the hook to your Claude Code settings (`~/.claude/settings.json`):
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+            "command": "/path/to/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
           }
         ]
       }
@@ -54,7 +54,7 @@ Add the hook to your Claude Code settings (`~/.claude/settings.json`):
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+            "command": "/path/to/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
           }
         ]
       }
@@ -64,7 +64,7 @@ Add the hook to your Claude Code settings (`~/.claude/settings.json`):
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+            "command": "/path/to/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
           }
         ]
       }
@@ -75,7 +75,7 @@ Add the hook to your Claude Code settings (`~/.claude/settings.json`):
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+            "command": "/path/to/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
           }
         ]
       }
@@ -86,7 +86,7 @@ Add the hook to your Claude Code settings (`~/.claude/settings.json`):
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOU/Repositories/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
+            "command": "/path/to/claude-notifs/env3.13/bin/python -m claude_notifs.hook"
           }
         ]
       }
@@ -95,7 +95,7 @@ Add the hook to your Claude Code settings (`~/.claude/settings.json`):
 }
 ```
 
-Replace `/Users/YOU/` with your home directory.
+Replace `/path/to/claude-notifs` with your actual install path.
 
 ### Run the menu bar app
 
@@ -109,7 +109,7 @@ env3.13/bin/python -m claude_notifs.menubar
 
 A LaunchAgent runs the app automatically at login with no terminal window required.
 
-Create `~/Library/LaunchAgents/com.awlego.claude-notifs.plist`:
+Create `~/Library/LaunchAgents/com.yourname.claude-notifs.plist`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -117,17 +117,17 @@ Create `~/Library/LaunchAgents/com.awlego.claude-notifs.plist`:
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.awlego.claude-notifs</string>
+    <string>com.yourname.claude-notifs</string>
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/YOU/Repositories/claude-notifs/env3.13/bin/python</string>
+        <string>/path/to/claude-notifs/env3.13/bin/python</string>
         <string>-m</string>
         <string>claude_notifs.menubar</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/YOU/Repositories/claude-notifs</string>
+    <string>/path/to/claude-notifs</string>
 
     <key>RunAtLoad</key>
     <true/>
@@ -144,29 +144,21 @@ Create `~/Library/LaunchAgents/com.awlego.claude-notifs.plist`:
 </plist>
 ```
 
-Replace `/Users/YOU/` with your home directory.
+Replace `yourname` and `/path/to/claude-notifs` with your values.
 
-Load it:
-
-```bash
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.awlego.claude-notifs.plist
-```
-
-Restart it (e.g. after code changes):
+#### Managing the LaunchAgent
 
 ```bash
-launchctl kickstart -k gui/$(id -u)/com.awlego.claude-notifs
-```
+# Load
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.yourname.claude-notifs.plist
 
-Stop it:
+# Restart (e.g. after code changes)
+launchctl kickstart -k gui/$(id -u)/com.yourname.claude-notifs
 
-```bash
-launchctl bootout gui/$(id -u)/com.awlego.claude-notifs
-```
+# Stop
+launchctl bootout gui/$(id -u)/com.yourname.claude-notifs
 
-Check status:
-
-```bash
+# Check status
 launchctl list | grep claude-notifs
 ```
 
