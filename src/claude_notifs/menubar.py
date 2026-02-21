@@ -6,7 +6,7 @@ Usage: python -m claude_notifs.menubar
 import rumps
 
 from .constants import EMOJI_MAP, POLL_INTERVAL, Status
-from .status import get_active_sessions, get_aggregate_status, read_status
+from .status import get_active_sessions, read_status
 
 
 class ClaudeStatusApp(rumps.App):
@@ -19,17 +19,19 @@ class ClaudeStatusApp(rumps.App):
         data = read_status()
         sessions = data.get("sessions", {})
         active = get_active_sessions(sessions)
-        agg_status = get_aggregate_status(active)
-        emoji = EMOJI_MAP.get(agg_status, "⚪")
 
-        # Build title: emoji + project name if there's one active session
-        if len(active) == 1:
-            session = next(iter(active.values()))
-            self.title = f"{emoji} {session.get('project', 'Claude')}"
-        elif len(active) > 1:
-            self.title = f"{emoji} Claude ({len(active)})"
+        # Build title: one emoji per active session
+        if active:
+            emojis = []
+            for s in active.values():
+                try:
+                    s_emoji = EMOJI_MAP.get(Status(s.get("status", "idle")), "⚪")
+                except ValueError:
+                    s_emoji = "⚪"
+                emojis.append(s_emoji)
+            self.title = "".join(emojis)
         else:
-            self.title = f"{emoji} Claude"
+            self.title = "⚪"
 
         # Build dropdown menu
         menu_items = []

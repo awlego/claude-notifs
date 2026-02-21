@@ -2,7 +2,7 @@
 
 macOS menu bar status widget for Claude Code sessions.
 
-Shows a color-coded indicator in your menu bar reflecting the aggregate state of all running Claude Code sessions:
+Shows one color-coded emoji per active Claude Code session in your menu bar — e.g. `🔵🟡✅` for three sessions — so you can see the count and individual states at a glance:
 
 | Emoji | Status | Meaning |
 |-------|--------|---------|
@@ -149,13 +149,19 @@ Replace `/Users/YOU/` with your home directory.
 Load it:
 
 ```bash
-launchctl load ~/Library/LaunchAgents/com.awlego.claude-notifs.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.awlego.claude-notifs.plist
+```
+
+Restart it (e.g. after code changes):
+
+```bash
+launchctl kickstart -k gui/$(id -u)/com.awlego.claude-notifs
 ```
 
 Stop it:
 
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.awlego.claude-notifs.plist
+launchctl bootout gui/$(id -u)/com.awlego.claude-notifs
 ```
 
 Check status:
